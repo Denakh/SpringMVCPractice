@@ -11,8 +11,13 @@
     </form>
 
     <form action="/add_photo" enctype="multipart/form-data" method="POST">
-        Photo: <input type="file" name="photo">
+        Add photo: <input type="file" name="photo">
         <input type="submit"/>
+    </form>
+
+    <form action="/filezip" enctype="multipart/form-data" method="POST">
+        File for zip archive: <input type="file" name="file">
+        <input type="submit" value="get zip archive"/>
     </form>
 </div>
 </body>

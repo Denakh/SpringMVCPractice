@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 @RequestMapping("/")
@@ -77,6 +80,34 @@ public class MyController {
         }
         for (long idp : idl) photos.remove(idp);
         return "index";
+    }
+
+    @RequestMapping(value="/filezip", method = RequestMethod.POST)
+    public ResponseEntity<byte[]> onFileZip(@RequestParam MultipartFile file) {
+        HttpHeaders headers = new HttpHeaders();
+        byte[] fileBytes;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (file.isEmpty()){
+            headers.add("Location", "/");
+            return new ResponseEntity<>(null, headers, HttpStatus.FOUND);
+        }
+        try {
+            fileBytes = file.getBytes();
+            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+                ZipEntry ze = new ZipEntry(file.getOriginalFilename());
+                ze.setSize(fileBytes.length);
+                zos.putNextEntry(ze);
+                zos.write(fileBytes);
+                zos.closeEntry();
+            }
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Content-Disposition", "attachment; filename=\""
+                    + file.getOriginalFilename() + ".zip\"");
+            return new ResponseEntity<>(baos.toByteArray(), headers, HttpStatus.OK);
+        } catch (IOException e) {
+            headers.add("Location", "/");
+            return new ResponseEntity<>(null, headers, HttpStatus.FOUND);
+        }
     }
 
     private ResponseEntity<byte[]> photoById(long id) {
